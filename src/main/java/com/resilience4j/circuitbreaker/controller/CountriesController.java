@@ -4,7 +4,6 @@ import com.resilience4j.circuitbreaker.request.CircuitBreakerRequest;
 import com.resilience4j.circuitbreaker.response.CircuitBreakerResponse;
 import com.resilience4j.circuitbreaker.service.ChangeConfigService;
 import com.resilience4j.circuitbreaker.service.CountriesService;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +20,12 @@ import java.util.function.Supplier;
 public class CountriesController {
     private final CountriesService countriesService;
     private final ChangeConfigService changeConfigService;
-    private final CircuitBreaker circuitBreaker;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
-    public CountriesController(CountriesService countriesService, ChangeConfigService changeConfigService, CircuitBreaker circuitBreaker) {
+    public CountriesController(CountriesService countriesService, ChangeConfigService changeConfigService, CircuitBreakerRegistry circuitBreakerRegistry) {
         this.countriesService = countriesService;
         this.changeConfigService = changeConfigService;
-        this.circuitBreaker = circuitBreaker;
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
     }
 
     @PostMapping("/change-config")
@@ -39,7 +38,7 @@ public class CountriesController {
         Supplier<List<Object>> countrySupplier = () -> countriesService.getCountries();
         Supplier<List<Object>> decoratedSupplier = Decorators
                 .ofSupplier(countrySupplier)
-                        .withCircuitBreaker(circuitBreaker)
+                        .withCircuitBreaker(circuitBreakerRegistry.circuitBreaker("countries-service"))
                                 .withFallback(this::getAlternateMessage)
                                         .decorate();
         return decoratedSupplier.get();
