@@ -1,21 +1,27 @@
 spring:
   application.name: CircuitBreaker
   jackson.serialization.indent_output: true
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:xe
+    username: username
+    password: password
 
 management:
   endpoints.web.exposure.include:
-    - '*'
+    "health, info, cbcountry"
   endpoint.health.show-details: always
   health.circuitbreakers.enabled: true
 
-resilience4j.circuitbreaker:
-  configs:
-    default:
-      registerHealthIndicator: true
-      slidingWindowSize: 10
-      minimumNumberOfCalls: 5
-      permittedNumberOfCallsInHalfOpenState: 3
-      automaticTransitionFromOpenToHalfOpenEnabled: true
-      waitDurationInOpenState: 20s
-      failureRateThreshold: 50
-      eventConsumerBufferSize: 10
+#resilience4j.circuitbreaker:
+#  instances:
+#    countries-service:
+#      registerHealthIndicator: true
+#      slidingWindowSize: 10
+#      minimumNumberOfCalls: 5
+#      permittedNumberOfCallsInHalfOpenState: 3
+#      automaticTransitionFromOpenToHalfOpenEnabled: true
+#      slowCallRateThreshold: 50
+#      slowCallDurationThreshold: 10s
+#      waitDurationInOpenState: 20s
+#      failureRateThreshold: 50
+#      eventConsumerBufferSize: 10
