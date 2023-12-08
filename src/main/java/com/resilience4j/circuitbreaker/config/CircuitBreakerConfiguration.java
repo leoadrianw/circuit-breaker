@@ -2,21 +2,12 @@ package com.resilience4j.circuitbreaker.config;
 
 import com.resilience4j.circuitbreaker.domain.CbConfig;
 import com.resilience4j.circuitbreaker.repository.CircuitBreakerRepository;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.core.registry.EntryAddedEvent;
-import io.github.resilience4j.core.registry.EntryRemovedEvent;
-import io.github.resilience4j.core.registry.EntryReplacedEvent;
-import io.github.resilience4j.core.registry.RegistryEventConsumer;
-import io.github.resilience4j.micrometer.tagged.TaggedCircuitBreakerMetrics;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 
 import java.time.Duration;
 
@@ -30,7 +21,6 @@ public class CircuitBreakerConfiguration {
     }
 
     @Bean
-    @Order(99)
     public CommandLineRunner run(CircuitBreakerRepository repository) {
         return args -> {
             if (repository.findById(1L).isPresent()) {
@@ -53,7 +43,7 @@ public class CircuitBreakerConfiguration {
         };
     }
 
-    private CircuitBreakerConfig getConfig() {
+    public CircuitBreakerConfig getConfig() {
         CbConfig config = circuitBreakerRepository.findById(Long.valueOf(1)).get();
         return CircuitBreakerConfig
                 .custom()
@@ -61,6 +51,7 @@ public class CircuitBreakerConfiguration {
                 .automaticTransitionFromOpenToHalfOpenEnabled(true)
                 .slidingWindowSize(config.getSlidingWindowSize())
                 .minimumNumberOfCalls(config.getMinimumNumberOfCalls())
+                .permittedNumberOfCallsInHalfOpenState(config.getPermittedNumberOfCallsInHalfOpenState())
                 .failureRateThreshold(config.getFailureRateThreshold())
                 .slowCallRateThreshold(config.getSlowCallRateThreshold())
                 .slowCallDurationThreshold(config.getSlowCallDurationThreshold())
@@ -69,13 +60,16 @@ public class CircuitBreakerConfiguration {
     }
 
     @Bean
-    @Order(1)
     public CircuitBreakerRegistry getRegistry() {
         CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(getConfig());
         circuitBreakerRegistry.circuitBreaker("countries-service");
         return circuitBreakerRegistry;
     }
 
+    public void updateRegistry(CircuitBreakerConfig circuitBreakerConfig) {
+        CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(circuitBreakerConfig);
+        circuitBreakerRegistry.circuitBreaker("countries-service");
+    }
 
 
 //    @Bean
