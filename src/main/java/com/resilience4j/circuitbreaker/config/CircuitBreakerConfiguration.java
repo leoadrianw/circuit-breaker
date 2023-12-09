@@ -4,51 +4,55 @@ import com.resilience4j.circuitbreaker.domain.CbConfig;
 import com.resilience4j.circuitbreaker.repository.CircuitBreakerRepository;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.time.Duration;
 
 @Configuration
 @Slf4j
 public class CircuitBreakerConfiguration {
-    private final CircuitBreakerRepository circuitBreakerRepository;
+    public static final String CB_COUNTRY_CONFIG = "countriesService";
+    public static final String COUNTRY_CB_NAME = "countries-service";
+    private final CircuitBreakerRepository repository;
 
-    public CircuitBreakerConfiguration(CircuitBreakerRepository circuitBreakerRepository) {
-        this.circuitBreakerRepository = circuitBreakerRepository;
+    public CircuitBreakerConfiguration(CircuitBreakerRepository repository) {
+        this.repository = repository;
     }
 
-    @Bean
-    public CommandLineRunner run(CircuitBreakerRepository repository) {
-        return args -> {
-            if (repository.findById(1L).isPresent()) {
-                return;
-            } else {
-                var entity = new CbConfig();
-                entity.setId(1L);
-                entity.setSlidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED);
-                entity.setSlidingWindowSize(10);
-                entity.setMinimumNumberOfCalls(5);
-                entity.setFailureRateThreshold(30.0F);
-                entity.setPermittedNumberOfCallsInHalfOpenState(3);
-                entity.setAutomaticTransitionFromOpenToHalfOpenEnabled(true);
-                entity.setSlowCallRateThreshold(80.0f);
-                entity.setSlowCallDurationThreshold(Duration.ofSeconds(3));
-                entity.setWaitDurationInOpenState(Duration.ofSeconds(5));
-                repository.save(entity);
-            }
+    @Order(1)
+    @PostConstruct
+    public void run() {
+        if (repository.findById(1L).isPresent()) {
+            return;
+        }
 
-        };
+        var entity = new CbConfig();
+        entity.setId(1L);
+        entity.setSlidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED);
+        entity.setSlidingWindowSize(10);
+        entity.setMinimumNumberOfCalls(5);
+        entity.setFailureRateThreshold(30.0F);
+        entity.setPermittedNumberOfCallsInHalfOpenState(3);
+        entity.setAutomaticTransitionFromOpenToHalfOpenEnabled(true);
+        entity.setSlowCallRateThreshold(80.0f);
+        entity.setSlowCallDurationThreshold(Duration.ofSeconds(3));
+        entity.setWaitDurationInOpenState(Duration.ofSeconds(5));
+        repository.saveAndFlush(entity);
     }
 
     public CircuitBreakerConfig getConfig() {
-        CbConfig config = circuitBreakerRepository.findById(Long.valueOf(1)).get();
+        CbConfig config = repository.findById(1L)
+                .orElseThrow(EntityNotFoundException::new);
+
         return CircuitBreakerConfig
                 .custom()
                 .slidingWindowType(config.getSlidingWindowType())
-                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .automaticTransitionFromOpenToHalfOpenEnabled(config.getAutomaticTransitionFromOpenToHalfOpenEnabled())
                 .slidingWindowSize(config.getSlidingWindowSize())
                 .minimumNumberOfCalls(config.getMinimumNumberOfCalls())
                 .permittedNumberOfCallsInHalfOpenState(config.getPermittedNumberOfCallsInHalfOpenState())
@@ -60,67 +64,10 @@ public class CircuitBreakerConfiguration {
     }
 
     @Bean
+    @Order(99)
     public CircuitBreakerRegistry getRegistry() {
-        CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(getConfig());
-        circuitBreakerRegistry.circuitBreaker("countries-service");
+        CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.ofDefaults();
+        circuitBreakerRegistry.addConfiguration(CB_COUNTRY_CONFIG, this.getConfig());
         return circuitBreakerRegistry;
     }
-
-    public void updateRegistry(CircuitBreakerConfig circuitBreakerConfig) {
-        CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(circuitBreakerConfig);
-        circuitBreakerRegistry.circuitBreaker("countries-service");
-    }
-
-
-//    @Bean
-//    public MeterRegistry getMetrics() {
-//        MeterRegistry meterRegistry = new SimpleMeterRegistry();
-//        TaggedCircuitBreakerMetrics.ofCircuitBreakerRegistry(getRegistry())
-//                .bindTo(meterRegistry);
-//
-//        return meterRegistry;
-//    }
-//
-//
-//    @Bean
-//    public RegistryEventConsumer<CircuitBreaker> circuitBreakerEventConsumer() {
-//        return new RegistryEventConsumer<CircuitBreaker>() {
-//
-//            @Override
-//            public void onEntryAddedEvent(EntryAddedEvent<CircuitBreaker> entryAddedEvent) {
-//                entryAddedEvent.getAddedEntry().getEventPublisher()
-//                        .onFailureRateExceeded(event -> log.error("circuit breaker {} failure rate {} on {}",
-//                                event.getCircuitBreakerName(), event.getFailureRate(), event.getCreationTime())
-//                        )
-//                        .onSlowCallRateExceeded(event -> log.error("circuit breaker {} slow call rate {} on {}",
-//                                event.getCircuitBreakerName(), event.getSlowCallRate(), event.getCreationTime())
-//                        )
-//                        .onCallNotPermitted(event -> log.error("circuit breaker {} call not permitted {}",
-//                                event.getCircuitBreakerName(), event.getCreationTime())
-//                        )
-//                        .onError(event -> log.error("circuit breaker {} error with duration {}s",
-//                                event.getCircuitBreakerName(), event.getElapsedDuration().getSeconds())
-//                        )
-//                        .onStateTransition(
-//                                event -> log.warn("circuit breaker {} state transition from {} to {} on {}",
-//                                        event.getCircuitBreakerName(), event.getStateTransition().getFromState(),
-//                                        event.getStateTransition().getToState(), event.getCreationTime())
-//                        );
-//            }
-//
-//            @Override
-//            public void onEntryRemovedEvent(EntryRemovedEvent<CircuitBreaker> entryRemoveEvent) {
-//                entryRemoveEvent.getRemovedEntry().getEventPublisher()
-//                        .onFailureRateExceeded(event -> log.debug("Circuit breaker event removed {}",
-//                                event.getCircuitBreakerName()));
-//            }
-//
-//            @Override
-//            public void onEntryReplacedEvent(EntryReplacedEvent<CircuitBreaker> entryReplacedEvent) {
-//                entryReplacedEvent.getNewEntry().getEventPublisher()
-//                        .onFailureRateExceeded(event -> log.debug("Circuit breaker event replaced {}",
-//                                event.getCircuitBreakerName()));
-//            }
-//        };
-//    }
 }

@@ -1,16 +1,16 @@
 spring:
-  main:
-    allow-circular-references: true
-  application.name: CircuitBreaker
-  jackson.serialization.indent_output: true
+  application:
+    name: CircuitBreaker
+  jackson:
+    serialization:
+      indent_output: true
   jpa:
     hibernate:
       ddl-auto: update
   datasource:
-    url: jdbc:mysql://rizkyjabar.me:3306/dummyfun
-    port: 3306
-    username: 'fadli'
-    password: '@Majuterusbisa123456'
+    url: jdbc:mysql://localhost:3306/circuit_breaker
+    username: 'admin'
+    password: 'password'
     driver-class-name: com.mysql.cj.jdbc.Driver
 management:
   endpoints.web.exposure.include:
