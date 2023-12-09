@@ -1,6 +1,7 @@
 package com.resilience4j.circuitbreaker.endpoint;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.Builder;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
@@ -21,20 +22,20 @@ public class CountriesEndpoint {
     @ReadOperation
     public CircuitBreakerParam getCircuitBreakerProperties() {
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("countries-service");
-        CircuitBreakerParam circuitBreakerParam = CircuitBreakerParam.builder()
-                .slidingWindowSize(circuitBreaker.getCircuitBreakerConfig().getSlidingWindowSize())
-                .minimumNumberOfCalls(circuitBreaker.getCircuitBreakerConfig().getMinimumNumberOfCalls())
-                .permittedNumberOfCallsInHalfOpenState(circuitBreaker.getCircuitBreakerConfig().getPermittedNumberOfCallsInHalfOpenState())
-                .automaticTransitionFromOpenToHalfOpenEnabled(circuitBreaker.getCircuitBreakerConfig().isAutomaticTransitionFromOpenToHalfOpenEnabled())
-                .slowCallRateThreshold(circuitBreaker.getCircuitBreakerConfig().getSlowCallRateThreshold())
-                .failureRateThreshold(circuitBreaker.getCircuitBreakerConfig().getFailureRateThreshold())
-                .slowCallDurationThreshold(circuitBreaker.getCircuitBreakerConfig().getSlowCallDurationThreshold())
+        CircuitBreakerConfig config = circuitBreaker.getCircuitBreakerConfig();
+        return CircuitBreakerParam.builder()
+                .slidingWindowSize(config.getSlidingWindowSize())
+                .minimumNumberOfCalls(config.getMinimumNumberOfCalls())
+                .permittedNumberOfCallsInHalfOpenState(config.getPermittedNumberOfCallsInHalfOpenState())
+                .automaticTransitionFromOpenToHalfOpenEnabled(config.isAutomaticTransitionFromOpenToHalfOpenEnabled())
+                .slowCallRateThreshold(config.getSlowCallRateThreshold())
+                .failureRateThreshold(config.getFailureRateThreshold())
+                .slowCallDurationThreshold(config.getSlowCallDurationThreshold())
                 .build();
-        return circuitBreakerParam;
     }
 
     @Builder
-    record CircuitBreakerParam(Integer slidingWindowSize,
+    public record CircuitBreakerParam(Integer slidingWindowSize,
                                Integer minimumNumberOfCalls,
                                Integer permittedNumberOfCallsInHalfOpenState,
                                Boolean automaticTransitionFromOpenToHalfOpenEnabled,
@@ -43,16 +44,4 @@ public class CountriesEndpoint {
                                Duration slowCallDurationThreshold) {
 
     }
-
-    @Builder
-    record CircuitBreakerMetrics(Integer totalCallNumber,
-                                 String state,
-                                 Float failureRate,
-                                 Integer notPermittedCalls,
-                                 Integer slowCalls,
-                                 Integer successfulCalls) {
-
-    }
-
-
 }
