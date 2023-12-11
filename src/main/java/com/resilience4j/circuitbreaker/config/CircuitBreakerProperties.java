@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
-@ConfigurationProperties(prefix = "resilience4j.circuitbreaker.instances.albumcb")
+@ConfigurationProperties(prefix = "resilience4j.circuitbreaker.instances.countries-service")
 public record CircuitBreakerProperties(
         Integer slidingWindowSize,
         Integer minimumNumberOfCalls,
