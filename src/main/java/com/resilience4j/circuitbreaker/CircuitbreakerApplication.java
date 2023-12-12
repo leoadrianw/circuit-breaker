@@ -4,6 +4,7 @@ import com.resilience4j.circuitbreaker.config.CircuitBreakerProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,6 +19,11 @@ public class CircuitbreakerApplication {
 	@Bean
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
+	}
+
+	@Bean
+	public Resilience4JCircuitBreakerFactory resilience4JCircuitBreakerFactory() {
+		return new Resilience4JCircuitBreakerFactory(null, null, null);
 	}
 
 }
