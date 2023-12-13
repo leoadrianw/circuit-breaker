@@ -18,7 +18,6 @@ import java.util.Set;
 @Component
 public class CountriesEndpoint {
     public static final String CB_COUNTRY_CONFIG = "countriesService";
-    public static final String CB_COUNTRY = "countries-service";
     private final CircuitBreakerConfiguration configuration;
 
     public CountriesEndpoint(CircuitBreakerConfiguration configuration) {

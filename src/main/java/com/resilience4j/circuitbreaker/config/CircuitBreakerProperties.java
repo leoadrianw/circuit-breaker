@@ -1,18 +1,23 @@
 package com.resilience4j.circuitbreaker.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "resilience4j.circuitbreaker.instances.countries-service")
-@RefreshScope
-public record CircuitBreakerProperties(
-        Integer slidingWindowSize,
-        Integer minimumNumberOfCalls,
-        Integer permittedNumberOfCallsInHalfOpenState,
-        Boolean automaticTransitionFromOpenToHalfOpenEnabled,
-        Float slowCallRateThreshold,
-        Float failureRateThreshold,
-        Duration slowCallDurationThreshold) {
+public class CircuitBreakerProperties {
+    private Integer slidingWindowSize;
+    private Integer minimumNumberOfCalls;
+    private Integer permittedNumberOfCallsInHalfOpenState;
+    private Boolean automaticTransitionFromOpenToHalfOpenEnabled;
+    private Float slowCallRateThreshold;
+    private Float failureRateThreshold;
+    private Duration slowCallDurationThreshold;
 }
+
