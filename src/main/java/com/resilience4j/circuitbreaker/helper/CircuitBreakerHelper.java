@@ -9,15 +9,14 @@ import io.github.resilience4j.decorators.Decorators;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @Component
 @Aspect
@@ -27,6 +26,8 @@ public class CircuitBreakerHelper {
     public static final String COUNTRY_CB_NAME = "countries-service";
     private final CircuitBreakerConfiguration configuration;
     private final CountriesService countriesService;
+    private CustomCircuitBreaker customCircuitBreaker;
+    private CallFallback callFallback;
 
     public CircuitBreakerHelper(CircuitBreakerConfiguration configuration, CountriesService countriesService) {
         this.configuration = configuration;
@@ -41,21 +42,19 @@ public class CircuitBreakerHelper {
                 .getClass()
                 .getMethod(signature.getMethod().getName(),
                         signature.getMethod().getParameterTypes());
-        CustomCircuitBreaker customCircuitBreaker = method.getAnnotation(CustomCircuitBreaker.class);
+        customCircuitBreaker = method.getAnnotation(CustomCircuitBreaker.class);
 
-        CallFallback callFallback = customCircuitBreaker.fallbackMethod().newInstance();
+        callFallback = customCircuitBreaker.fallbackMethod().newInstance();
 
         return Decorators.ofSupplier(countriesService::getCountries)
                 .withCircuitBreaker(registry.circuitBreaker(COUNTRY_CB_NAME, CB_COUNTRY_CONFIG))
-                .withFallback((String, throwable) -> Collections.singletonList(callFallback.call(throwable)))
+                .withFallback(this::getAlternateMessage)
                 .decorate()
-                .get();
+                    .get();
 
     }
 
     public List<Object> getAlternateMessage(Throwable throwable) {
-        List<Object> countries = new ArrayList<>();
-        countries.add("Countries Service Unavailable");
-        return countries;
+        return callFallback.getFallback(throwable);
     }
 }

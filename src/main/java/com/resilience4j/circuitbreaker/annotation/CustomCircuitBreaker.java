@@ -13,5 +13,5 @@ import java.util.List;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface CustomCircuitBreaker {
     Class<? extends Throwable>[] ignoreExceptions() default {};
-    Class<CallFallback> fallbackMethod();
+    Class<? extends CallFallback> fallbackMethod();
 }
