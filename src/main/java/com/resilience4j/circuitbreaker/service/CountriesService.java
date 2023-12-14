@@ -1,28 +1,32 @@
 package com.resilience4j.circuitbreaker.service;
 
-import com.resilience4j.circuitbreaker.properties.CircuitBreakerProperties;
-import com.resilience4j.circuitbreaker.repository.CountriesRepository;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CountriesService {
-    private final CountriesRepository countriesRepository;
+    public static final String COUNTRIES_API = "https://restcountries.com/v3.1/all";
     private final RestTemplate restTemplate;
-    private final CircuitBreakerProperties circuitBreakerProperties;
 
-    public CountriesService(CountriesRepository countriesRepository, RestTemplate restTemplate, CircuitBreakerProperties circuitBreakerProperties) {
-        this.countriesRepository = countriesRepository;
-        this.restTemplate = restTemplate;
-        this.circuitBreakerProperties = circuitBreakerProperties;
-    }
+    public CountriesService(RestTemplate restTemplate) {this.restTemplate = restTemplate;}
 
     public List<Object> getCountries() {
-        Object[] countries = null;
-        countries = restTemplate.getForObject("https://restcountries.com/v3.1/all", Object[].class);
-        return Arrays.stream(countries).toList().subList(1, 10);
+        ResponseEntity<List<Object>> exchange = restTemplate.exchange(
+                COUNTRIES_API,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>() {});
+        List<Object> countries = exchange.getBody();
+
+        return Optional.ofNullable(countries)
+                .map(list -> list.subList(1, 10))
+                .orElse(Collections.emptyList());
     }
 }

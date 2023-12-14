@@ -9,12 +9,12 @@ import java.util.function.Supplier;
 
 @Component
 @Slf4j
-public class CircuitBreakerConfiguration implements Supplier<CircuitBreakerConfig> {
-    public static final String CB_COUNTRY_CONFIG = "countriesService";
-    public static final String COUNTRY_CB_NAME = "countries-service";
-    private final CircuitBreakerProperties properties;
+public class IgnoreCBConfiguration implements Supplier<CircuitBreakerConfig> {
+    public static final String IGNORE_CONFIG = "ignoreCB";
+    public static final String IGNORE_CB_NAME = "ignore-cb";
+    private final IgnoreCBProperties properties;
 
-    public CircuitBreakerConfiguration(CircuitBreakerProperties properties) {
+    public IgnoreCBConfiguration(IgnoreCBProperties properties) {
         this.properties = properties;
     }
 

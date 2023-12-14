@@ -1,0 +1,15 @@
+services:
+  config-server:
+    container_name: config-server-cb
+    build: config-server/.
+    ports:
+      - "8888:8888"
+  circuitbreaker:
+    container_name: circuitbreaker-cb
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-server

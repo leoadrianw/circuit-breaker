@@ -1,15 +1,14 @@
-package com.resilience4j.circuitbreaker.properties;
+package com.resilience4j.circuitbreaker.config;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
-@Configuration
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "resilience4j.circuitbreaker.instances.countries-service")
-@Data
 public class CircuitBreakerProperties {
     private Integer slidingWindowSize;
     private Integer minimumNumberOfCalls;
@@ -19,3 +18,4 @@ public class CircuitBreakerProperties {
     private Float failureRateThreshold;
     private Duration slowCallDurationThreshold;
 }
+

@@ -1,24 +1,15 @@
 spring:
-  main:
-    allow-circular-references: true
-  application.name: CircuitBreaker
-  jackson.serialization.indent_output: true
-  jpa:
-    hibernate:
-      ddl-auto: update
-  datasource:
-    url: jdbc:mysql://rizkyjabar.me:3306/dummyfun
-    port: 3306
-    username: 'fadli'
-    password: '@Majuterusbisa123456'
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import: configserver:http://localhost:8888
+  cloud:
+    config:
+      profile: dev
+      enabled: true
+  application:
+    name: CircuitBreaker
+
 management:
   endpoints.web.exposure.include:
-    "health, info, refresh, cbcountry"
+    "*"
   endpoint.health.show-details: always
   health.circuitbreakers.enabled: true
-
-resilience4j.circuitbreaker:
-  instances:
-    countries-service:
-      registerHealthIndicator: true
