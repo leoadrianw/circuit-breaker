@@ -22,5 +22,5 @@ public @interface DelegateCircuitBreaker {
 
     Class<? extends Supplier<CircuitBreakerConfig>> configuration();
 
-//    Class<? extends Throwable>[] ignoreException() default {};
+    Class<? extends Throwable>[] ignoreExceptions() default {};
 }

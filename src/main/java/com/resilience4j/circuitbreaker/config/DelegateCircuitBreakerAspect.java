@@ -1,6 +1,7 @@
 package com.resilience4j.circuitbreaker.config;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.functions.CheckedSupplier;
 import io.github.resilience4j.core.lang.Nullable;
@@ -85,15 +86,24 @@ public class DelegateCircuitBreakerAspect implements Ordered {
         return CircuitBreakerRegistry.ofDefaults();
     }
 
-    private CircuitBreaker getCircuitBreaker(DelegateCircuitBreaker annotation) throws Exception {
+    private CircuitBreaker getCircuitBreaker(DelegateCircuitBreaker annotation) {
         CircuitBreakerRegistry registry = context.getBean(CircuitBreakerRegistry.class);
         var name = annotation.name();
         var configName = annotation.configName();
         var configuration = annotation.configuration();
         var configSupplier = context.getBean(configuration);
+        var ignoreExceptions = annotation.ignoreExceptions();
+
+        CircuitBreakerConfig baseConfig = configSupplier.get();
+
+        if(ignoreExceptions.length > 0) {
+            baseConfig = CircuitBreakerConfig.from(baseConfig)
+                    .ignoreExceptions(ignoreExceptions)
+                    .build();
+        }
 
         if (registry.getConfiguration(configName).isEmpty()) {
-            registry.addConfiguration(configName, configSupplier.get());
+            registry.addConfiguration(configName, baseConfig);
         }
 
         return registry.circuitBreaker(name, configName);

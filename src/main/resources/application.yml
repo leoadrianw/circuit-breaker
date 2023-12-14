@@ -10,11 +10,6 @@ spring:
 
 management:
   endpoints.web.exposure.include:
-    "health, info, refresh, cbcountry"
+    "*"
   endpoint.health.show-details: always
   health.circuitbreakers.enabled: true
-
-resilience4j.circuitbreaker:
-  instances:
-    countries-service:
-      registerHealthIndicator: true
