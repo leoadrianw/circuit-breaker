@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 @Slf4j
 public class CircuitBreakerConfiguration implements Supplier<CircuitBreakerConfig> {
     public static final String CB_COUNTRY_CONFIG = "countriesService";
-    public static final String COUNTRY_CB_NAME = "countries-service";
     private final CircuitBreakerProperties properties;
 
     public CircuitBreakerConfiguration(CircuitBreakerProperties properties) {
